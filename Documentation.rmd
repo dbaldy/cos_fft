@@ -1,0 +1,244 @@
+Website to do the mathematical formula
+http://latex.codecogs.com/eqneditor/editor.php
+ #### Advanced Numerical Methode and Data analyisis
+ # PRICING METHOD FOR EUROPEAN OPTIONS BASED ON FOURIER - COSINE SERIES EXPANSIONS
+ ### based on the paper from Fang,Fang and Oosterle, Kees
+
+ *Damien Baldy, Claire Fromholz, Michal Stachnio, (Danilo?) *
+
+
+## 1. The Problematic : How to compute a european option pricing system ?
+
+ A Call european option price is calcultated according to the following formula :
+
+![european Option](http://latex.codecogs.com/gif.latex?C_T%7B%28k%29%7D%3D%20e%5E%7BrT%7DE%5E%7BQ%7D%5B%28e%5E%7Bs_%7BT%7D%7D-e%5E%7Bk%7D%29%5E%7B&plus;%7D%5D%20%3D%20e%5E%7BrT%7D%5Cint_%7B-%5Cinfty%20%7D%5E%7B&plus;%5Cinfty%20%7Dq%28S_%7BT%7D%29K%28e%5E%7Bs_%7BT%7D-k%7D-1%29%5E%7B&plus;%7DdS_%7BT%7D)
+
+where  the following variables r, T, S, K and q  represent respectively the risk free rate, the maturity , the underlying asset price, the strike price and the probability distribution function.
+
+The probability distribution function of the underlying asset price can be calculated based on the characteristic function ![phi](http://latex.codecogs.com/gif.latex?%5Cphi) (derived from assumption).
+
+![probability distribution function](http://latex.codecogs.com/gif.latex?q%28x%29%20%3D%20%5Cfrac%7B1%7D%7B2%5Cpi%20%7D%5Cint_%7B-%5Cinfty%7D%5E%7B&plus;%5Cinfty%7De%5E%7B-iux%7D%5Cphi%20%28u%29du)
+
+A computer do not compute integrand and not infinite calculation so it is needed to find an adequate numerical method to compute a call european option price.
+In order to do so, we are going to use the cos-FFT method.
+
+## 2. the cos FFT method
+
+Thanks to the cos FFT method, it is possible to compute with low computational cost integrand. The infinity calculation is going to be solved by summing until N where N is a large integer.
+
+The cos FFT method consist in approximating the a function f by the following formula :
+
+![f_cos_FFT](http://latex.codecogs.com/gif.latex?f%28x%29%20%3D%20%5Csum_%7Bk%3D0%7D%5E%7BN-1%27%7DF_%7Bk%7Dcos%28k%5Cpi%20%5Cfrac%7Bx-a%7D%7Bb-a%7D%29)
+
+where :
+![Fk](http://latex.codecogs.com/gif.latex?F_%7Bk%7D%3D%5Cfrac%7B2%7D%7Bb-a%7D%5CRe%20%5Cleft%20%5C%7B%20%5Cphi%20%28%5Cfrac%7Bk%5Cpi%20%7D%7Bb-a%7D%29.exp%28-i%5Cfrac%7Bka%5Cpi%20%7D%7Bb-a%7D%29%20%5Cright%20%5C%7D)
+
+and N, a and b represent respectively the approximation of infinity , the truncation interval to get the value of the characteristic function ![phi](http://latex.codecogs.com/gif.latex?%5Cphi).
+
+## 3. Apply the cos-FFT method to price a call option
+
+Using the cos-FFT method, the call option price can be computed using this following formula :
+![cos_FFT_call](http://latex.codecogs.com/gif.latex?C%28x%2CT%29%20%3D%20e%5E%7B-r%5Ctau%20%7D%5Csum_%7Bk%3D0%7D%5E%7BN-1%27%7D%5CRe%20%5Cleft%20%5C%7B%20%5Cphi%20%28%5Cfrac%7Bk%5Cpi%20%7D%7Bb-a%7D%29exp%28-i%5Cfrac%7Bk%5Cpi%20a%7D%7Bb-a%7D%29%20%5Cright%20%5C%7DV_%7Bk%7D%5E%7Bcall%7D)
+where:  ![vk_call](http://latex.codecogs.com/gif.latex?V_%7Bk%7D%5E%7Bcall%7D%3D%20%5Cfrac%7B2%7D%7Bb-a%7DK%28%5Cchi%20_%7Bk%7D%280%2Cb%29-%5Cpsi%20_%7Bk%7D%280%2Cb%29%29)
+NB: the cos-FFT method can be used to price other derivatives, like :
+
+- a put option : ![put option](http://latex.codecogs.com/gif.download?V_%7Bk%7D%5E%7Bput%7D%20%3D%20%5Cfrac%7B2%7D%7Bb-a%7DK%28-%5Cchi%20_%7Bk%7D%28a%2C0%29+%5Cpsi%20_%7Bk%7D%28a%2C0%29%29)
+- a cash-or-nothing call option : ![cash_option](http://latex.codecogs.com/gif.download?V_%7Bk%7D%5E%7Bcash%7D%20%3D%20%5Cfrac%7B2%7D%7Bb-a%7DK%28%5Cpsi%20_%7Bk%7D%280%2Cb%29%29)
+
+
+See definition of ![psi](http://latex.codecogs.com/gif.latex?%5Cpsi) and ![chi](http://latex.codecogs.com/gif.latex?%5Cchi) slide 26 , session 1.
+
+Now, the parameters that need to be selected are the following :
+- the risk free rate (r)
+- the maturity (T)
+- the truncation interval ([a,b])
+-  **x ????**
+- the assumed characteristic function (![phi](http://latex.codecogs.com/gif.latex?%5Cphi))
+
+To get the truncation level , the following formula is used :
+![truncation_interval](http://latex.codecogs.com/gif.latex?%5Ba%2Cb%5D%3D%5Bc_%7B1%7D-10%5Csqrt%7Bc_%7B2%7D%20&plus;%5Csqrt%7Bc_%7B4%7D%7D%7D%20%2C%20c_%7B1%7D&plus;10%5Csqrt%7Bc_%7B2%7D%20&plus;%5Csqrt%7Bc_%7B4%7D%7D%7D%20%5D)
+ , where cn is the n-th cumulants of ln(ST/K) given by the paper.
+
+
+## 4. Select the characteristic function
+The characteristic function is supposed to model the underlying asset price evolution.
+### 1 - The Theory
+#### A) Levy Model
+
+The characteristic function for the Levy Model is the following :
+![levy](http://latex.codecogs.com/gif.download?%5Cvarphi%20_%7Blevy%7D%28w%29%3De%5E%7Biw%28r-q%29%5CDelta%20t-%5Cfrac%7B1%7D%7B2%7Dw%5E%7B2%7D%5Csigma%20%5E%7B2%7D%5CDelta%20t%7D.e%5E%7B%5CDelta%20tC%5CGamma%20%28-Y%29%5B%28M-iw%29%5E%7BY%7D-M%5E%7BY%7D+%28G+iw%29%5E%7BY%7D-G%5E%7BY%7D%5D%7D)   
+Based on this function, we can get the following model:
+- CGMY model: C,G and M must be positive and Y<2.    
+- Variance Gamma model : ![sigma](http://latex.codecogs.com/gif.latex?%5Csigma) and Y are equal to zero.
+![variance_gamma](http://latex.codecogs.com/gif.download?%5Cvarphi%20_%7BVG%7D%28w%29%3De%5E%7Biw%28r-q%29%5CDelta%20t-%5Cfrac%7B1%7D%7B2%7Dw%5E%7B2%7D%5CDelta%20t%7D)  **??**    
+- Black-Scholes Formula (GBM) : C=0    
+![GBM](http://latex.codecogs.com/gif.download?%5Cvarphi%20_%7BGBM%7D%28w%29%3De%5E%7Biw%28r-q%29%5CDelta%20t-%5Cfrac%7B1%7D%7B2%7Dw%5E%7B2%7D%5Csigma%5E%7B2%7D%5CDelta%20t%7D)
+
+#### B) Heston Model
+The characteristic function following the Heston model is the following :
+
+![heston_char_func](http://latex.codecogs.com/gif.download?%5Cvarphi%20_%7Bheston%7D%28w%2Cu_%7B0%7D%29%3De%5E%7Biw%5Cmu%20%5CDelta%20t+%5Cfrac%7Bu_%7B0%7D%7D%7B%5Ceta%20%5E%7B2%7D%7D%28%5Cfrac%7B1-e%5E%7B-D%5CDelta%20t%7D%7D%7B1-Ge%5E%7B-D%5CDelta%20t%7D%7D%29.%28%5Clambda%20-i%5Crho%20%5Ceta%20w-D%29%7D.e%5E%7B%5Cfrac%7B%5Clambda%20%5Cbar%7Bv%7D%7D%7B%5Ceta%20%5E%7B2%7D%7D%28%5CDelta%20t%28%5Clambda%20-i%5Crho%20%5Ceta%20w-D%29-2log%28%5Cfrac%7B1-Ge%5E%7B-D%5CDelta%20t%7D%7D%7B1-G%7D%29%29%7D)
+
+where :  
+- ![D](http://latex.codecogs.com/gif.download?D%20%3D%20%5Csqrt%7B%28%5Clambda%20-i%5Crho%20%5Ceta%20w%20%29%5E%7B2%7D+%28w%5E%7B2%7D+iw%29%5Ceta%5E%7B2%7D%7D)
+- ![G](http://latex.codecogs.com/gif.download?G%20%3D%20%5Cfrac%7B%5Clambda%20-i%5Crho%20%5Ceta%20w%20-D%7D%7B%5Clambda%20-i%5Crho%20%5Ceta%20w%20+D%7D)
+
+
+### 2 - the implementation
+
+These formula are implemented in the python code named "OptionPricing.py".
+See in appendix the pre-requisite python librairies to use the python program.
+
+In the command line, go to the field where your python code is located.
+```
+cd /field_name
+```
+Then you must call the python program using the right parameters:
+```
+python OptionPricing.py --parameters parameters_list
+```
+In the parameters list you should include the following parameters:
+- the model type : Heston, GBM, VG, CGMY
+- the parameters expected for each of the Model:
+    - Heston's parameters: ...
+    - GBM's parameters: ...
+    - VG's parameters: ...
+    - CGMY's parameters: ...
+
+The program will give you the following result.   
+Example 1 :
+```
+python OptionPricing.py --parameters parameters_list
+32.2323232
+```
+###### A modifier avec un réel résultat
+
+
+## 5. Numerical results
+
+### A) Options with Heston model
+
+- Call option , using put-call parity   
+
+Put-call parity formula : ![put call parity](http://latex.codecogs.com/gif.latex?v_%7Bcall%7D%28x%2Ct_%7B0%7D%29%20%3D%20v_%7Bput%7D%28x%2Ct_%7B0%7D%29%20&plus;%20S_%7B0%7De%5E%7B-qT%7D-Ke%5E%7B-rT%7D)
+
+**see pt 13 remark5.2**
+
+parameters :
+![alpha](http://latex.codecogs.com/gif.latex?%5Calpha) = 0.75;
+S0 = 100 ; r = 0 ; q = 0 ; K = 100;
+![lambda](http://latex.codecogs.com/gif.latex?%5Clambda) = 1.5768;
+![eta](http://latex.codecogs.com/gif.latex?%5Ceta) = 0.5751;
+![ubar](http://latex.codecogs.com/gif.download?%5Cbar%7Bu%7D) = 0.0398;
+![u0](http://latex.codecogs.com/gif.download?u_%7B0%7D) = 0.0175;
+![rho](http://latex.codecogs.com/gif.latex?%5Crho) = -0.5711;
+
+
+With T = 1 and N = 1200  OR  T = 10 and N = 500;
+
+NB , the truncation interval has been changed to :
+![truncation interval](http://latex.codecogs.com/gif.latex?%5Ba%2Cb%5D%3D%5Bc_%7B1%7D-12%5Csqrt%7B%5Cleft%20%7Cc_%7B2%7D%20%5Cright%20%7C%20%7D%20%2C%20c_%7B1%7D&plus;12%5Csqrt%7B%5Cleft%20%7Cc_%7B2%7D%20%5Cright%20%7C%20%7D%20%5D)  
+For c1 and c2 , see paper's appendix.
+
+Reference values :   
+For T = 1 , Vcall = 5.785155450;   
+For T = 10 , Vcall = 22.318945791;  
+
+Our result :
+For T = 1 , Vcall = ....;   
+For T = 10 , Vcall = ....;
+
+### B) Call option with GBM Model
+
+parameters :
+![alpha](http://latex.codecogs.com/gif.latex?%5Csalpha) = 0.75 ;
+S0 = 100 ; r = 0.1 ; q = 0 ; T = 0.1 ;
+![sigma](http://latex.codecogs.com/gif.latex?%5Csigma) = 0.25 ;
+N = 2^6 ;   
+For the truncation interval , ![c1](http://latex.codecogs.com/gif.latex?c_%7B1%7D%20%3D%20%5Cmu%20T);
+![c2](http://latex.codecogs.com/gif.latex?c_%7B2%7D%20%3D%20%5Csigma%5E%7B2%7D%20T); c4 and w = 0 ;
+
+
+K= 80, 100, 120 ;
+
+Reference values :   
+For K = 80 , Vcall = 20.799226309;   
+For K = 100 , Vcall = 3.659968453;   
+For K = 120 , Vcall = 0.044577814
+
+Our result :   
+For K = 80 , Vcall = ...;   
+For K = 100 , Vcall = ...;   
+For K = 120 , Vcall = ...
+
+- Cash option ?  
+S0 = 100 ; r = 0.05 ; q= 0 ; T = 0.1 ;
+![sigma](http://latex.codecogs.com/gif.latex?%5Csigma) = 0.25 ;
+K = 120 ;
+
+Reference values : Vcash = 0.273306496   
+Our result : Vcash = ...
+
+
+### C) Call option with Variance Gamma Model
+
+parameters :
+The C, G, M parameters are defined as followed:   
+![CGM](http://latex.codecogs.com/gif.latex?C%3D%5Cfrac%7B1%7D%7Bv%7D%20%2C%20G%3D%20%5Cfrac%7B%5Ctheta%20%7D%7B%5Csigma%20%5E%7B2%7D%7D%20&plus;%5Csqrt%7B%5Cfrac%7B%5Ctheta%5E%7B2%7D%20%7D%7B%5Csigma%20%5E%7B4%7D%7D&plus;%20%5Cfrac%7B2%7D%7Bv%5Csigma%20%5E%7B2%7D%7D%7D%2C%20M%3D%20-%5Cfrac%7B%5Ctheta%20%7D%7B%5Csigma%20%5E%7B2%7D%7D%20&plus;%5Csqrt%7B%5Cfrac%7B%5Ctheta%5E%7B2%7D%20%7D%7B%5Csigma%20%5E%7B4%7D%7D&plus;%20%5Cfrac%7B2%7D%7Bv%5Csigma%20%5E%7B2%7D%7D%7D)
+
+K = 90; S0 = 100 ; r = 0.1 ; q = 0 ; v = 0.12 ;
+![sigma](http://latex.codecogs.com/gif.latex?%5Csigma) = 0.12 ;
+![theta](http://latex.codecogs.com/gif.latex?%5Ctheta) = -0.14 ;
+
+With T = 0.1 OR T = 1 year.
+
+Reference values :   
+For T = 0.1 , Vcall = 10.993793187;   
+For T = 1 , Vcall = 19.099354724;  
+
+Our result :
+For T = 0.1 , Vcall = ....;   
+For T = 1 , Vcall = ....;
+
+### D) Call option with CGMY Model
+
+parameters :
+K = 100; S0 = 100 ; r = 0.1 ; q = 0 ; C = 1; G = 5; M =5 ; T = 1;   
+With Y = 0.5 OR Y = 1.5 OR Y = 1.98;  
+N = 2^14 to be perfect, but let's take N = 48 ;
+
+
+Reference values :   
+For Y = 0.5 , Vcall = 19.812948843;   
+For Y = 1.5 , Vcall = 49.790905469;  
+For Y = 1.98, Vcall = 99.999905510
+
+Our result :   
+For Y = 0.5 , Vcall = ...;     
+For Y = 1.5 , Vcall = ...;   
+For Y = 1.98, Vcall = ...   
+
+
+
+## 6. Error analyisis
+
+... to be completed
+- truncation of the integration range in the risk neutral valuation formula
+- the subsitution of the density by its cosine series expansion on the truncated range
+- the subsitution of the series coeeficients by the characterisitc function approximation
+
+
+
+
+
+## Appendix
+
+1° chi and psi   
+2°   
+3° Pre-requitsite python librairies and version   
+Python 3 version   
+librairies :
+- numpy
+- math
+- cmath
+- matplotlib.pyplot
