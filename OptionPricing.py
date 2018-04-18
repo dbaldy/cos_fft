@@ -12,8 +12,8 @@ def HestonCharFunction(w, u_0, maturity, eta, lamb, rho, uBarre, mu):
                              (maturity * (lamb - complex(0, rho * eta * w) - D) - 2 *
                               cmath.log((1 - G * cmath.exp(-D * maturity))/(1 - G))))
 
-def LevyCharFunction(w, interest_rate, q, maturity, sigma, C, Y, M):
-     A = cmath.exp(complex(w * (interest_rate - q) * maturity) - 1 / 2 * (w * sigma) ** 2 * maturity)
+def LevyCharFunction(w, interest_rate, dividend, maturity, sigma, C, Y, M):
+     A = cmath.exp(complex(w * (interest_rate - dividend) * maturity) - 1 / 2 * (w * sigma) ** 2 * maturity)
      B = cmath.exp(maturity * C * math.gamma(-Y) * ((M - complex(w)) ** Y - M ** Y + (G + complex(w)) ** Y -
                                                      G ** Y)) if C > 0 else 1
      return A * B
@@ -23,6 +23,18 @@ def GetLevyBounds(c_1, c_2, c_4):
     a = c_1 - 10 * math.sqrt(c_2 + math.sqrt(c_4))
     b = c_1 + 10 * math.sqrt(c_2 + math.sqrt(c_4))
     return a, b
+
+def Chi(k, c, d, a, b):
+    return 1 / (1 + ((k * math.pi) / (b - a)) ** 2) * (math.cos(k * math.pi * (d - a)/(b - a))* np.exp(d) -
+            math.cos(k * math.pi * (c - a)/(b - a)) * np.exp(c) + ((k * math.pi) / (b - a)) *
+            math.sin(k * math.pi * (d - a)/(b - a)) * np.exp(d) - ((k * math.pi)/(b - a)) *
+            math.sin(k * math.pi * (c - a)/(b - a)) * np.exp(c))
+
+def Psi(k, c, d, a, b):
+    if k == 0:
+        return d - c
+    return (b - a)/(k * math.pi) * (math.sin(k * math.pi * (d - a)/(b - a))
+                                        - math.sin(k * math.pi * (c - a)/(b - a)))
 
 def VGCallPrice(mu, sigma, T):
     sigma = 0
@@ -54,41 +66,28 @@ def CGMYCallPrice():
     result = 0
     pass
 
-def GBMCallPrice(current_price, strike, interest_rate, q, maturity, mu, sigma):
+def GBMCallPrice(current_price, strike, interest_rate, dividend, maturity, mu, sigma, N):
+    x = math.log(current_price / strike)
     c_1 = mu * maturity
     c_2 = sigma ** 2 * maturity
     c_4 = 0
-    omega = 0
     C = 0
     Y = 0
     M = 0
-    result = 0
     a, b = GetLevyBounds(c_1, c_2, c_4)
 
     call_price = 0
     for k in range(0, N - 1):
         u_k = 2 / (b - a) * (Chi(k, 0, b, a, b) - Psi(k, 0, b, a, b))
-        call_price += LevyCharFunction(omega, interest_rate, q, maturity, sigma, C, Y, M)
+        call_price += LevyCharFunction((k * math.pi)/(b - a), interest_rate, dividend, maturity, sigma, C, Y, M) * u_k * \
+        cmath.exp(complex(0, k * math.pi * (x - a)/(b - a)))
         if k == 0:
             call_price /= 2
     return np.real(call_price) * strike * math.exp(-interest_rate * maturity)
-    # return call_price
 
-
-def Chi(k, c, d, a, b):
-    return 1 / (1 + ((k * math.pi) / (b - a)) ** 2) * (math.cos(k * math.pi * (d - a)/(b - a))* np.exp(d) -
-            math.cos(k * math.pi * (c - a)/(b - a)) * np.exp(c) + ((k * math.pi) / (b - a)) *
-            math.sin(k * math.pi * (d - a)/(b - a)) * np.exp(d) - ((k * math.pi)/(b - a)) *
-            math.sin(k * math.pi * (c - a)/(b - a)) * np.exp(c))
-
-def Psi(k, c, d, a, b):
-    if k == 0:
-        return d - c
-    return (b - a)/(k * math.pi) * (math.sin(k * math.pi * (d - a)/(b - a))
-                                        - math.sin(k * math.pi * (c - a)/(b - a)))
-
-def HestonCallPrice(x, strike, current_price, maturity, interest_rate, lamb,
+def HestonCallPrice(strike, current_price, maturity, interest_rate, lamb,
                     eta, uBarre, u_0, rho, mu, N):
+    x = math.log(current_price / strike)
     c_1 = mu * maturity + (1 - math.exp(-lamb * maturity)) * (uBarre - u_0)/(2 * lamb) - (1/2) * uBarre * maturity
     # calculating c2
     c_2 = 1/(8 * lamb ** 3) * (eta * maturity * lamb * math.exp(-lamb * maturity) * (u_0 - uBarre) * \
@@ -109,19 +108,20 @@ def HestonCallPrice(x, strike, current_price, maturity, interest_rate, lamb,
             call_price /= 2
     return np.real(call_price) * strike * math.exp(-interest_rate * maturity)
 
+def PutPrice(price, current_price, dividend, maturity, strike, interest_rate):
+    return price - current_price * cmath.exp(-dividend * maturity) + strike * cmath.exp(-interest_rate * maturity)
 
-N = 128
-strike = 100
-current_price = 100
-maturity = 1
-interest_rate = 0
-lamb = 1.5768
-eta = 0.5751
-uBarre = 0.0398
-u_0 = 0.0175
-rho = -0.5711
-mu = 0
-x = math.log(current_price / strike)
-# HestonCallPrice(x, strike, current_price, maturity, interest_rate, lamb, eta, uBarre, u_0, rho, mu, N):
-# print(HestonCallPrice(x, strike, current_price, maturity, interest_rate,
+
+# N = 128
+# strike = 100
+# current_price = 100
+# maturity = 1
+# interest_rate = 0
+# lamb = 1.5768
+# eta = 0.5751
+# uBarre = 0.0398
+# u_0 = 0.0175
+# rho = -0.5711
+# mu = 0
+# print(HestonCallPrice(strike, current_price, maturity, interest_rate,
 #                       lamb, eta, uBarre, u_0, rho, mu, N))
