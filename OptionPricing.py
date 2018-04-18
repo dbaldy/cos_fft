@@ -4,17 +4,75 @@ import cmath
 import matplotlib.pyplot as plt
 
 def HestonCharFunction(w, u_0, maturity, eta, lamb, rho, uBarre, mu):
-  D = cmath.sqrt((lamb - complex(0, rho * eta * w)) ** 2 + (w ** 2 + complex(0, w)) * eta ** 2)
-  G = (lamb - complex(0, rho * eta * w) - D)/(lamb - complex(0, rho * eta * w)  + D)
-  return cmath.exp(complex(0, w * mu * maturity) + (u_0)/(eta ** 2) *
+    D = cmath.sqrt((lamb - complex(0, rho * eta * w)) ** 2 + (w ** 2 + complex(0, w)) * eta ** 2)
+    G = (lamb - complex(0, rho * eta * w) - D)/(lamb - complex(0, rho * eta * w)  + D)
+    return cmath.exp(complex(0, w * mu * maturity) + (u_0)/(eta ** 2) *
                              (1 - np.exp(-D * maturity))/(1 - G * cmath.exp(-D * maturity)) *
                              (lamb - complex(0, rho * eta * w) - D)) * cmath.exp((lamb * uBarre)/(eta ** 2) *
                              (maturity * (lamb - complex(0, rho * eta * w) - D) - 2 *
                               cmath.log((1 - G * cmath.exp(-D * maturity))/(1 - G))))
-  # return hestonCalc
-  #exp(1i*omega*mu*T+u0*((1-exp(-D(omega)*T))./(1-G(omega).*exp(-D(omega)*T))).*(lambda-1i*rho*eta*omega-D(omega))/eta^2) ...
-#    .* exp((T*(lambda-1i*rho*eta*omega-D(omega))-2*log((1-G(omega).*exp(-D(omega)*T))./(1-G(omega))))*lambda*u_bar/eta^2);
 
+def LevyCharFunction(w, interest_rate, q, maturity, sigma, C, Y, M):
+     A = cmath.exp(complex(w * (interest_rate - q) * maturity) - 1 / 2 * (w * sigma) ** 2 * maturity)
+     B = cmath.exp(maturity * C * math.gamma(-Y) * ((M - complex(w)) ** Y - M ** Y + (G + complex(w)) ** Y -
+                                                     G ** Y)) if C > 0 else 1
+     return A * B
+
+def GetLevyBounds(c_1, c_2, c_4):
+    # L = 10
+    a = c_1 - 10 * math.sqrt(c_2 + math.sqrt(c_4))
+    b = c_1 + 10 * math.sqrt(c_2 + math.sqrt(c_4))
+    return a, b
+
+def VGCallPrice(mu, sigma, T):
+    sigma = 0
+    Y = 0
+    C = 1 / nu
+    G = theta / sigma ** 2 + math.sqrt(theta ** 2 / sigma ** sigma ** 4 + 2 / (nu * sigma ** 2))
+    M = - theta / sigma ** 2 + math.sqrt(theta ** 2 / sigma ** sigma ** 4 + 2 / (nu * sigma ** 2))
+    c_1 = (mu + theta) * T
+    c_2 = (sigma ** 2 + nu * theta ** 2) * T
+    c_4 = 3 * (sigma ** 4 + 2 * thetha ** 4 + nu ** 3 + 4 * (sigma * theta * nu) ** 2) * T
+    omega = 1 / nu * math.log(1 - theta * nu - sigma ** 2 * nu / 2) # default log has base e
+    result = 0
+    pass
+
+def CGMYCallPrice():
+    Y = 1.5
+    current_price = 100
+    strike = 100
+    r = 0.1
+    q = 0
+    C = 1
+    G = 5
+    M = 5
+    T = 1
+    c_1 = mu * T + C * T * math.gamma(1 - Y) * (M ** (Y - 1) - G ** (Y - 1))
+    c_2 = sigma ** 2 * T + C * T  * math.gamma(2 - Y) * (M ** (Y - 2) + G ** (Y - 2))
+    c_4 = C * T * math.gamma(4 - Y) * (Y ** (Y - 4) + G ** (Y - 4))
+    omega = -C * math.gamma(-Y) * ((M - 1) ** Y - M ** Y + (G + 1) ** Y - G ** Y)
+    result = 0
+    pass
+
+def GBMCallPrice(current_price, strike, interest_rate, q, maturity, mu, sigma):
+    c_1 = mu * maturity
+    c_2 = sigma ** 2 * maturity
+    c_4 = 0
+    omega = 0
+    C = 0
+    Y = 0
+    M = 0
+    result = 0
+    a, b = GetLevyBounds(c_1, c_2, c_4)
+
+    call_price = 0
+    for k in range(0, N - 1):
+        u_k = 2 / (b - a) * (Chi(k, 0, b, a, b) - Psi(k, 0, b, a, b))
+        call_price += LevyCharFunction(omega, interest_rate, q, maturity, sigma, C, Y, M)
+        if k == 0:
+            call_price /= 2
+    return np.real(call_price) * strike * math.exp(-interest_rate * maturity)
+    # return call_price
 
 
 def Chi(k, c, d, a, b):
@@ -41,7 +99,7 @@ def HestonCallPrice(x, strike, current_price, maturity, interest_rate, lamb,
     # establishing the bounds
     a = c_1 - 12 * math.sqrt(abs(c_2))
     b = c_1 + 12 * math.sqrt(abs(c_2))
-    
+
     call_price = 0
     for k in range(0, N - 1):
         u_k = 2 / (b - a) * (Chi(k, 0, b, a, b) - Psi(k, 0, b, a, b))
@@ -65,5 +123,5 @@ rho = -0.5711
 mu = 0
 x = math.log(current_price / strike)
 # HestonCallPrice(x, strike, current_price, maturity, interest_rate, lamb, eta, uBarre, u_0, rho, mu, N):
-print(HestonCallPrice(x, strike, current_price, maturity, interest_rate,
-                      lamb, eta, uBarre, u_0, rho, mu, N))
+# print(HestonCallPrice(x, strike, current_price, maturity, interest_rate,
+#                       lamb, eta, uBarre, u_0, rho, mu, N))
