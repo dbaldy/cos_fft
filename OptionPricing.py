@@ -19,9 +19,9 @@ def LevyCharFunction(w, interest_rate, dividend, maturity, sigma, C, Y, M):
      return A * B
 
 def GetLevyBounds(c_1, c_2, c_4):
-    # L = 10
-    a = c_1 - 10 * math.sqrt(c_2 + math.sqrt(c_4))
-    b = c_1 + 10 * math.sqrt(c_2 + math.sqrt(c_4))
+    L = 10
+    a = c_1 - L * math.sqrt(c_2 + math.sqrt(c_4))
+    b = c_1 + L * math.sqrt(c_2 + math.sqrt(c_4))
     return a, b
 
 def Chi(k, c, d, a, b):
@@ -36,8 +36,7 @@ def Psi(k, c, d, a, b):
     return (b - a)/(k * math.pi) * (math.sin(k * math.pi * (d - a)/(b - a))
                                         - math.sin(k * math.pi * (c - a)/(b - a)))
 
-def VGCallPrice(mu, sigma, T):
-    sigma = 0
+def VGPutPrice(current_price, strike, interest_rate, dividend, maturity, mu, sigma, N):
     Y = 0
     C = 1 / nu
     G = theta / sigma ** 2 + math.sqrt(theta ** 2 / sigma ** sigma ** 4 + 2 / (nu * sigma ** 2))
@@ -46,15 +45,20 @@ def VGCallPrice(mu, sigma, T):
     c_2 = (sigma ** 2 + nu * theta ** 2) * T
     c_4 = 3 * (sigma ** 4 + 2 * thetha ** 4 + nu ** 3 + 4 * (sigma * theta * nu) ** 2) * T
     omega = 1 / nu * math.log(1 - theta * nu - sigma ** 2 * nu / 2) # default log has base e
-    result = 0
-    pass
 
-def CGMYCallPrice():
+    a, b = GetLevyBounds(c_1, c_2, c_4)
+    price = 0
+    for k in range(0, N - 1):
+        u_k = 2 / (b - a) * (-Chi(k, a, 0, a, b) + Psi(k, a, 0, a, b))
+        price += LevyCharFunction((k * math.pi)/(b - a), interest_rate, dividend, maturity, sigma, C, Y, M) * u_k * \
+        cmath.exp(complex(0, k * math.pi * (x - a)/(b - a)))
+        if k == 0:
+            price /= 2
+    return np.real(price) * strike * math.exp(-interest_rate * maturity)
+
+
+def CGMYPutPrice(current_price, strike, interest_rate, dividend, maturity, mu, sigma, N):
     Y = 1.5
-    current_price = 100
-    strike = 100
-    r = 0.1
-    q = 0
     C = 1
     G = 5
     M = 5
@@ -63,10 +67,19 @@ def CGMYCallPrice():
     c_2 = sigma ** 2 * T + C * T  * math.gamma(2 - Y) * (M ** (Y - 2) + G ** (Y - 2))
     c_4 = C * T * math.gamma(4 - Y) * (Y ** (Y - 4) + G ** (Y - 4))
     omega = -C * math.gamma(-Y) * ((M - 1) ** Y - M ** Y + (G + 1) ** Y - G ** Y)
-    result = 0
-    pass
 
-def GBMCallPrice(current_price, strike, interest_rate, dividend, maturity, mu, sigma, N):
+    a, b = GetLevyBounds(c_1, c_2, c_4)
+    price = 0
+    for k in range(0, N - 1):
+        u_k = 2 / (b - a) * (-Chi(k, a, 0, a, b) + Psi(k, a, 0, a, b))
+        price += LevyCharFunction((k * math.pi)/(b - a), interest_rate, dividend, maturity, sigma, C, Y, M) * u_k * \
+        cmath.exp(complex(0, k * math.pi * (x - a)/(b - a)))
+        if k == 0:
+            price /= 2
+    return np.real(price) * strike * math.exp(-interest_rate * maturity)
+
+
+def GBMPutPrice(current_price, strike, interest_rate, dividend, maturity, mu, sigma, N):
     x = math.log(current_price / strike)
     c_1 = mu * maturity
     c_2 = sigma ** 2 * maturity
@@ -76,16 +89,16 @@ def GBMCallPrice(current_price, strike, interest_rate, dividend, maturity, mu, s
     M = 0
     a, b = GetLevyBounds(c_1, c_2, c_4)
 
-    call_price = 0
+    price = 0
     for k in range(0, N - 1):
-        u_k = 2 / (b - a) * (Chi(k, 0, b, a, b) - Psi(k, 0, b, a, b))
-        call_price += LevyCharFunction((k * math.pi)/(b - a), interest_rate, dividend, maturity, sigma, C, Y, M) * u_k * \
+        u_k = 2 / (b - a) * (-Chi(k, a, 0, a, b) + Psi(k, a, 0, a, b))
+        price += LevyCharFunction((k * math.pi)/(b - a), interest_rate, dividend, maturity, sigma, C, Y, M) * u_k * \
         cmath.exp(complex(0, k * math.pi * (x - a)/(b - a)))
         if k == 0:
-            call_price /= 2
-    return np.real(call_price) * strike * math.exp(-interest_rate * maturity)
+            price /= 2
+    return np.real(price) * strike * math.exp(-interest_rate * maturity)
 
-def HestonCallPrice(strike, current_price, maturity, interest_rate, lamb,
+def HestonPutPrice(strike, current_price, maturity, interest_rate, lamb,
                     eta, uBarre, u_0, rho, mu, N):
     x = math.log(current_price / strike)
     c_1 = mu * maturity + (1 - math.exp(-lamb * maturity)) * (uBarre - u_0)/(2 * lamb) - (1/2) * uBarre * maturity
@@ -99,17 +112,17 @@ def HestonCallPrice(strike, current_price, maturity, interest_rate, lamb,
     a = c_1 - 12 * math.sqrt(abs(c_2))
     b = c_1 + 12 * math.sqrt(abs(c_2))
 
-    call_price = 0
+    price = 0
     for k in range(0, N - 1):
-        u_k = 2 / (b - a) * (Chi(k, 0, b, a, b) - Psi(k, 0, b, a, b))
-        call_price += HestonCharFunction((k * math.pi)/(b - a), u_0, maturity, eta, lamb, rho, uBarre, mu) * u_k * \
+        u_k = 2 / (b - a) * (-Chi(k, a, 0, a, b) + Psi(k, a, 0, a, b))
+        price += HestonCharFunction((k * math.pi)/(b - a), u_0, maturity, eta, lamb, rho, uBarre, mu) * u_k * \
         cmath.exp(complex(0, k * math.pi * (x - a)/(b - a)))
         if k == 0:
-            call_price /= 2
-    return np.real(call_price) * strike * math.exp(-interest_rate * maturity)
+            price /= 2
+    return np.real(price) * strike * math.exp(-interest_rate * maturity)
 
-def PutPrice(price, current_price, dividend, maturity, strike, interest_rate):
-    return price - current_price * cmath.exp(-dividend * maturity) + strike * cmath.exp(-interest_rate * maturity)
+def CallPrice(price, current_price, strike, dividend, maturity, interest_rate):
+    return np.real(price + current_price * cmath.exp(-dividend * maturity) - strike * cmath.exp(-interest_rate * maturity))
 
 
 # N = 128
