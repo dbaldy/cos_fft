@@ -14,10 +14,12 @@ def HestonCharFunction(w, u_0, maturity, eta, lamb, rho, uBarre, mu):
                               cmath.log((1 - G * cmath.exp(-D * maturity))/(1 - G))))
 
 # Levy characteristic function, used for the Levy models
-def LevyCharFunction(w, interest_rate, dividend, maturity, sigma, C, Y, M):
+def LevyCharFunction(w, interest_rate, dividend, maturity, sigma, C, Y, M,G):
      A = cmath.exp(complex(w * (interest_rate - dividend) * maturity) - 0.5 * (w * sigma) ** 2 * maturity)
-     B = cmath.exp(maturity * C * math.gamma(-Y) * ((M - complex(w)) ** Y - M ** Y + (G + complex(w)) ** Y -
-                                                     G ** Y)) if C > 0 else 1
+     if C > 0:
+         B = cmath.exp(maturity * C * math.gamma(-Y) * ((M - complex(w)) ** Y - M ** Y + (G + complex(w)) ** Y - G ** Y))
+     else:
+        B = 1
      return A * B
 
 def GetLevyBounds(c_1, c_2, c_4):
@@ -40,28 +42,33 @@ def Psi(k, c, d, a, b):
 
 # VG Model
 def VGPutPrice(current_price, strike, interest_rate, dividend, maturity, mu, sigma, N):
-    Y = 0
+
+    x = math.log(current_price / strike)
+    Y = 0 #??? why did they choose 0 ? Issue with gamma function
+    nu = 0.12
+    theta = -0.14
     C = 1 / nu
     G = theta / sigma ** 2 + math.sqrt(theta ** 2 / sigma ** sigma ** 4 + 2 / (nu * sigma ** 2))
     M = - theta / sigma ** 2 + math.sqrt(theta ** 2 / sigma ** sigma ** 4 + 2 / (nu * sigma ** 2))
-    c_1 = (mu + theta) * T
-    c_2 = (sigma ** 2 + nu * theta ** 2) * T
-    c_4 = 3 * (sigma ** 4 + 2 * thetha ** 4 + nu ** 3 + 4 * (sigma * theta * nu) ** 2) * T
+    c_1 = (mu + theta) * maturity
+    c_2 = (sigma ** 2 + nu * theta ** 2) * maturity
+    c_4 = 3 * (sigma ** 4 + 2 * theta ** 4 + nu ** 3 + 4 * (sigma * theta * nu) ** 2) * maturity
     omega = 1 / nu * math.log(1 - theta * nu - sigma ** 2 * nu / 2) # default log has base e
 
     a, b = GetLevyBounds(c_1, c_2, c_4)
     price = 0
     for k in range(0, N - 1):
         u_k = 2 / (b - a) * (-Chi(k, a, 0, a, b) + Psi(k, a, 0, a, b))
-        price += LevyCharFunction((k * math.pi)/(b - a), interest_rate, dividend, maturity, sigma, C, Y, M) * u_k * \
+        price += LevyCharFunction((k * math.pi)/(b - a), interest_rate, dividend, maturity, sigma, C, Y, M,G) * u_k * \
         cmath.exp(complex(0, k * math.pi * (x - a)/(b - a)))
         if k == 0:
             price /= 2
     return np.real(price) * strike * math.exp(-interest_rate * maturity)
 
 # CGMY Model
-def CGMYPutPrice(current_price, strike, interest_rate, dividend, maturity, mu, sigma, N):
-    Y = 1.5
+def CGMYPutPrice(current_price, strike, interest_rate, dividend, maturity, mu, sigma, N,Y):
+
+    x = math.log(current_price / strike)
     C = 1
     G = 5
     M = 5
@@ -75,7 +82,7 @@ def CGMYPutPrice(current_price, strike, interest_rate, dividend, maturity, mu, s
     price = 0
     for k in range(0, N - 1):
         u_k = 2 / (b - a) * (-Chi(k, a, 0, a, b) + Psi(k, a, 0, a, b))
-        price += LevyCharFunction((k * math.pi)/(b - a), interest_rate, dividend, maturity, sigma, C, Y, M) * u_k * \
+        price += LevyCharFunction((k * math.pi)/(b - a), interest_rate, dividend, maturity, sigma, C, Y, M, G) * u_k * \
         cmath.exp(complex(0, k * math.pi * (x - a)/(b - a)))
         if k == 0:
             price /= 2
@@ -90,12 +97,13 @@ def GBMPutPrice(current_price, strike, interest_rate, dividend, maturity, mu, si
     C = 0
     Y = 0
     M = 0
+    G = 0
     a, b = GetLevyBounds(c_1, c_2, c_4)
 
     price = 0
     for k in range(0, N - 1):
         u_k = 2 / (b - a) * (-Chi(k, a, 0, a, b) + Psi(k, a, 0, a, b))
-        price += LevyCharFunction((k * math.pi)/(b - a), interest_rate, dividend, maturity, sigma, C, Y, M) * u_k * \
+        price += LevyCharFunction((k * math.pi)/(b - a), interest_rate, dividend, maturity, sigma, C, Y, M, G) * u_k * \
         cmath.exp(complex(0, k * math.pi * (x - a)/(b - a)))
         if k == 0:
             price /= 2
