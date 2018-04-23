@@ -3,6 +3,7 @@ import math
 import cmath
 import matplotlib.pyplot as plt
 
+# Heston characteristic function
 def HestonCharFunction(w, u_0, maturity, eta, lamb, rho, uBarre, mu):
     D = cmath.sqrt((lamb - complex(0, rho * eta * w)) ** 2 + (w ** 2 + complex(0, w)) * eta ** 2)
     G = (lamb - complex(0, rho * eta * w) - D)/(lamb - complex(0, rho * eta * w)  + D)
@@ -12,8 +13,9 @@ def HestonCharFunction(w, u_0, maturity, eta, lamb, rho, uBarre, mu):
                              (maturity * (lamb - complex(0, rho * eta * w) - D) - 2 *
                               cmath.log((1 - G * cmath.exp(-D * maturity))/(1 - G))))
 
+# Levy characteristic function, used for the Levy models
 def LevyCharFunction(w, interest_rate, dividend, maturity, sigma, C, Y, M):
-     A = cmath.exp(complex(w * (interest_rate - dividend) * maturity) - 1 / 2 * (w * sigma) ** 2 * maturity)
+     A = cmath.exp(complex(w * (interest_rate - dividend) * maturity) - 0.5 * (w * sigma) ** 2 * maturity)
      B = cmath.exp(maturity * C * math.gamma(-Y) * ((M - complex(w)) ** Y - M ** Y + (G + complex(w)) ** Y -
                                                      G ** Y)) if C > 0 else 1
      return A * B
@@ -36,6 +38,7 @@ def Psi(k, c, d, a, b):
     return (b - a)/(k * math.pi) * (math.sin(k * math.pi * (d - a)/(b - a))
                                         - math.sin(k * math.pi * (c - a)/(b - a)))
 
+# VG Model
 def VGPutPrice(current_price, strike, interest_rate, dividend, maturity, mu, sigma, N):
     Y = 0
     C = 1 / nu
@@ -56,7 +59,7 @@ def VGPutPrice(current_price, strike, interest_rate, dividend, maturity, mu, sig
             price /= 2
     return np.real(price) * strike * math.exp(-interest_rate * maturity)
 
-
+# CGMY Model
 def CGMYPutPrice(current_price, strike, interest_rate, dividend, maturity, mu, sigma, N):
     Y = 1.5
     C = 1
@@ -78,7 +81,7 @@ def CGMYPutPrice(current_price, strike, interest_rate, dividend, maturity, mu, s
             price /= 2
     return np.real(price) * strike * math.exp(-interest_rate * maturity)
 
-
+# GBM Model
 def GBMPutPrice(current_price, strike, interest_rate, dividend, maturity, mu, sigma, N):
     x = math.log(current_price / strike)
     c_1 = mu * maturity
@@ -98,6 +101,7 @@ def GBMPutPrice(current_price, strike, interest_rate, dividend, maturity, mu, si
             price /= 2
     return np.real(price) * strike * math.exp(-interest_rate * maturity)
 
+# Heston Model
 def HestonPutPrice(strike, current_price, maturity, interest_rate, lamb,
                     eta, uBarre, u_0, rho, mu, N):
     x = math.log(current_price / strike)
@@ -121,20 +125,6 @@ def HestonPutPrice(strike, current_price, maturity, interest_rate, lamb,
             price /= 2
     return np.real(price) * strike * math.exp(-interest_rate * maturity)
 
-def CallPrice(price, current_price, strike, dividend, maturity, interest_rate):
-    return np.real(price + current_price * cmath.exp(-dividend * maturity) - strike * cmath.exp(-interest_rate * maturity))
-
-
-# N = 128
-# strike = 100
-# current_price = 100
-# maturity = 1
-# interest_rate = 0
-# lamb = 1.5768
-# eta = 0.5751
-# uBarre = 0.0398
-# u_0 = 0.0175
-# rho = -0.5711
-# mu = 0
-# print(HestonCallPrice(strike, current_price, maturity, interest_rate,
-#                       lamb, eta, uBarre, u_0, rho, mu, N))
+# Put call parity
+def CallPrice(put_price, current_price, strike, dividend, maturity, interest_rate):
+    return np.real(put_price + current_price * cmath.exp(-dividend * maturity) - strike * cmath.exp(-interest_rate * maturity))
