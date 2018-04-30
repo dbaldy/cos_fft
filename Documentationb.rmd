@@ -249,14 +249,14 @@ For Y = 1.98, Vcall = -136585746028.36299
 
 
 
-### Error analyisis
+### Error analysis
 
 No significant differences can be observed concerning the Heston model.  
 Errors lower than 1 are observed using the Geometric Brownian Motion model.
 According to the paper, some of the errors might come from:
 - the truncation of the integration range in the risk neutral valuation formula
-- the subsitution of the density by its cosine series expansion on the truncated range
-- the subsitution of the series coefficients by the characterisitc function approximation
+- the substitution of the density by its cosine series expansion on the truncated range
+- the substitution of the series coefficients by the characteristic function approximation
 - CPU capacity's differences
 
 
