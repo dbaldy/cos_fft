@@ -50,7 +50,6 @@ NB: Here are some values of V_K for common european derivatives:
 
 - Put option : ![put option](http://latex.codecogs.com/gif.download?V_%7Bk%7D%5E%7Bput%7D%20%3D%20%5Cfrac%7B2%7D%7Bb-a%7DK%28-%5Cchi%20_%7Bk%7D%28a%2C0%29+%5Cpsi%20_%7Bk%7D%28a%2C0%29%29)
 - Call option : ![vk_call](http://latex.codecogs.com/gif.latex?V_%7Bk%7D%5E%7Bcall%7D%3D%20%5Cfrac%7B2%7D%7Bb-a%7DK%28%5Cchi%20_%7Bk%7D%280%2Cb%29-%5Cpsi%20_%7Bk%7D%280%2Cb%29%29)
-- Cash-or-nothing call option : ![cash_option](http://latex.codecogs.com/gif.download?V_%7Bk%7D%5E%7Bcash%7D%20%3D%20%5Cfrac%7B2%7D%7Bb-a%7DK%28%5Cpsi%20_%7Bk%7D%280%2Cb%29%29)
 
 See the equations for ![psi](http://latex.codecogs.com/gif.latex?%5Cpsi) and ![chi](http://latex.codecogs.com/gif.latex?%5Cchi) on slide 26, session 1.
 
@@ -208,15 +207,6 @@ Our result :
 For K = 80 , Vcall = 20.536545252007826;   
 For K = 100 , Vcall = 3.30986414824379;   
 For K = 120 , Vcall = 0.652153574524192
-
-## a modifier ??
-- Cash option ?  
-S0 = 100 ; r = 0.05 ; q= 0 ; T = 0.1 ;
-![sigma](http://latex.codecogs.com/gif.latex?%5Csigma) = 0.25 ;
-K = 120 ;
-
-Reference values : Vcash = 0.273306496   
-Our result : Vcash = ...
 
 
 ### Call option with the VG model
